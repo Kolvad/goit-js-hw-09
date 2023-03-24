@@ -22,24 +22,21 @@ form.addEventListener('submit', event => {
 
   let position = 1;
 
-  createPromise(position, delay)
-    .then(({ position, delay }) => {
-      console.log(`✅ Fulfilled promise ${position} in ${delay}ms`);
-    })
-    .catch(({ position, delay }) => {
-      console.log(`❌ Rejected promise ${position} in ${delay}ms`);
-    });
-
-  for (let i = 1; i < amount; i++) {
-    position++;
-    delay += step;
+  function createPromises(amount, delay, step, position) {
+    if (amount <= 0) {
+      return;
+    }
 
     createPromise(position, delay)
       .then(({ position, delay }) => {
         console.log(`✅ Fulfilled promise ${position} in ${delay}ms`);
+        createPromises(amount - 1, delay + step, step, position + 1);
       })
       .catch(({ position, delay }) => {
         console.log(`❌ Rejected promise ${position} in ${delay}ms`);
+        createPromises(amount - 1, delay + step, step, position + 1);
       });
   }
+
+  createPromises(amount, delay, step, position);
 });
