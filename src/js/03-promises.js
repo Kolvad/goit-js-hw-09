@@ -1,7 +1,13 @@
+import Notiflix from 'notiflix';
+Notiflix.Notify.init({
+  position: 'center-top',
+  timeout: 5000,
+});
+
 function createPromise(position, delay) {
   return new Promise((resolve, reject) => {
+    const shouldResolve = Math.random() > 0.3;
     setTimeout(() => {
-      const shouldResolve = Math.random() > 0.3;
       if (shouldResolve) {
         resolve({ position, delay });
       } else {
@@ -11,32 +17,30 @@ function createPromise(position, delay) {
   });
 }
 
-const form = document.querySelector('.form');
-
-form.addEventListener('submit', event => {
-  event.preventDefault();
-
-  const delay = parseInt(form.elements.delay.value);
-  const step = parseInt(form.elements.step.value);
-  const amount = parseInt(form.elements.amount.value);
-
-  let position = 1;
-
-  function createPromises(amount, delay, step, position) {
-    if (amount <= 0) {
+document.querySelector('.form').addEventListener('submit', e => {
+  e.preventDefault();
+  const { delay, step, amount } = e.currentTarget.elements;
+  const delayValue = parseInt(delay.value);
+  const stepValue = parseInt(step.value);
+  const amountValue = parseInt(amount.value);
+  for (let index = 0; index < amountValue; index += 1) {
+    if (delayValue < 0 || stepValue < 0) {
+      e.currentTarget.reset();
+      Notiflix.Notify.failure('Введіть коректні дані');
       return;
     }
-
-    createPromise(position, delay)
-      .then(({ position, delay }) => {
-        console.log(`✅ Fulfilled promise ${position} in ${delay}ms`);
-        createPromises(amount - 1, delay + step, step, position + 1);
-      })
-      .catch(({ position, delay }) => {
-        console.log(`❌ Rejected promise ${position} in ${delay}ms`);
-        createPromises(amount - 1, delay + step, step, position + 1);
-      });
+    const delay = index * stepValue + delayValue;
+    createPromise(index, delay)
+      .then(({ position, delay }) =>
+        Notiflix.Notify.success(
+          `Fulfilled promise ${position + 1} in ${delay}ms`
+        )
+      )
+      .catch(({ position, delay }) =>
+        Notiflix.Notify.failure(
+          `Rejected promise ${position + 1} in ${delay}ms`
+        )
+      );
   }
-
-  createPromises(amount, delay, step, position);
+  e.currentTarget.reset();
 });
